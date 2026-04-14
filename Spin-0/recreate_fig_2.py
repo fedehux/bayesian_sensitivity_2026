@@ -5,24 +5,21 @@ import matplotlib.ticker as mticker
 import matplotlib.patheffects as pe
 
 def load_npz_curves(fname):
-    """Devuelve (masas, betas_realizaciones [R x M], beta_mediana [M]) o None si no existe."""
+    """Returns (masses, beta_realizations [R x M], beta_median [M]) or None"""
     if not os.path.exists(fname):
         return None
     data = np.load(fname)
     masas = data["masas"]
-    betas = data["betas"]  # shape: (n_realizaciones, n_masas)
+    betas = data["betas"]  # shape: (n_realizations, n_masses)
     beta_med = np.nanmedian(betas, axis=0)
     return masas, betas, beta_med
 
 def plot_all_and_median(ax, masas, betas, beta_med, label_median, color,
                         lw_all=1.5, alpha_all=0.25, lw_med=3.0,
                         ls_all='-', ls_med='-'):
-    """Plotea todas las realizaciones (mismo color, alpha bajo) y la mediana (alpha=1)."""
-    # Todas las realizaciones (mismo color y estilo, alpha bajo)
     for r in range(betas.shape[0]):
         ax.loglog(masas, np.sqrt(betas[r, :]),
                   lw=lw_all, alpha=alpha_all, color=color, ls=ls_all)
-    # Mediana (alpha=1)
     ax.loglog(masas, np.sqrt(beta_med),
               lw=lw_med, color=color, ls=ls_med, label=label_median, alpha=1)
 
@@ -35,7 +32,7 @@ gauss_psi_npz = load_npz_curves("beta_psi_gaussian_all_realizations.npz")       
 # Gaussiano (x)
 gauss_x_npz   = load_npz_curves("beta_x_gaussian_all_realizations.npz")       # (x gaussiano)
 
-# -------------------- referencias externas: Cassini & PTA --------------------
+# -------------------- external references: Cassini & PTA --------------------
 # Cassini
 datos_cas = np.loadtxt("cassini_betas.txt")
 m_cas = datos_cas[:, 0]
@@ -45,7 +42,7 @@ dat_pta = np.loadtxt("PTA.txt", delimiter=",")
 m_pta = dat_pta[:, 0]
 b_pta = dat_pta[:, 1]
 
-# -------------------- estilo --------------------
+# -------------------- style --------------------
 plt.rcParams.update({
     "font.family": "serif",
     "font.serif": ["STIXGeneral", "DejaVu Serif", "Times New Roman"],
