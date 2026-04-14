@@ -45,7 +45,6 @@ df = pd.read_csv(ELL1_TABLE_PATH)
 df = df.replace([np.inf, -np.inf], np.nan)
 df = df.dropna(subset=["PB_d", "A1_ltsec"])
 
-# Normalize Pulsar IDs (J/B names)
 df["psr_id"] = df["pulsar"].astype(str).str.extract(r'((?:J|B)\d{4}[+-]\d{4})', expand=False)
 df["psr_id"] = df["psr_id"].fillna(df["pulsar"].astype(str).str.strip().str.rstrip('.'))
 

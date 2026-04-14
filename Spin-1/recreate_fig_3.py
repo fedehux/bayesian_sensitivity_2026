@@ -94,8 +94,6 @@ for fname in masas:
 
     ax.plot(m, g, color=colores[fname], lw=1, zorder=z+0.1)
     
-
-# AJUSTE DE FUENTES (7 para textos de anotación)
 ax.text(1e-19, 1e-25, "MICROSCOPE",
         color="white", fontsize=7, va="bottom", ha="right",
         weight="bold",

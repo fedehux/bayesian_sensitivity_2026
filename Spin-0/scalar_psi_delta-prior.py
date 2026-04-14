@@ -35,6 +35,7 @@ m_seconds = masses_ev * 1.51926760385984e15
 # Pulsar Dataset: (Pb [days], x [lt-s], ecc, Tasc [MJD], precision [us], Tobs [yrs], cadence)
 # This list represents the timing properties of the binary pulsars we are analyzing.
 pulsars_data = [
+    (67.83, 32.34, 7.5e-5, 53420.49, 0.21, 15.47, 1381),
     (0.7, 8.82e-2, 7.1e-6, 55186.11342080, 14.18, 4.5, 663.6),
     (6.8, 1.02e+01, 7.865e-6, 56102.4, 7.86, 15.5, 1201.9),
     (10.2, 2.82e+00, 5.15e-6, 56104.2, 7.94, 15.5, 1663.6),
@@ -61,7 +62,7 @@ pulsars_data = [
 
 # --- Monte Carlo Realizations ---
 # We want to account for the stochastic nature of the DM field (amplitude and phase)
-n_realizations = 10
+n_realizations = 1
 random_params = {}
 for i, _ in enumerate(pulsars_data):
     np.random.seed(i) # Ensuring reproducibility per pulsar
