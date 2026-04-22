@@ -191,7 +191,7 @@ for seed in tqdm(range(n_realizations), desc="Global Progress", position=0):
 
             # Time discretization
             n_points = max(2, int(np.round(t_obs * ndot)))
-            t_grid = np.linspace(0.0, t_obs, n_points * 10)
+            t_grid = np.linspace(0.0, t_obs, n_points * 30)
 
             # Basis function values
             f0_vals = f0(t_grid, t_obs)
@@ -285,7 +285,7 @@ plt.xscale("log")
 plt.yscale("log")
 plt.xlabel("m [eV]", fontsize=12)
 plt.ylabel("g(m)", fontsize=12)
-plt.xlim(1e-23, 5e-19)
+plt.xlim(1e-23, 1e-18)
 
 plt.ylim(np.nanmin(g_full)*0.1, np.nanmax(g_full)*10)
 
