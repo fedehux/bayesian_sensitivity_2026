@@ -52,7 +52,7 @@ var_theta = Q_factor * eps_factor * ecc**2 * (
 )
 
 # Mass range in eV and conversion to frequency (1/s)
-masses_ev = np.logspace(-19.1, -18, num=400)
+masses_ev = np.logspace(-19.05, -18, num=400)
 m_seconds = masses_ev * 1.51926760385984e+15
 
 # Timing model basis functions (fitting components)
@@ -68,8 +68,8 @@ max_freq_hz = max_ang_freq / (2 * np.pi)
 samples_per_cycle = 10
 n_points = int(np.ceil(t_obs * (samples_per_cycle * max_freq_hz)))
 
-n_realizations = 10
-n_bessel_terms = 30
+n_realizations = 5
+n_bessel_terms = 10
 # n_points = round(t_obs * cadence)
 t_vals = np.linspace(0, t_obs, n_points)
 
@@ -84,7 +84,7 @@ g_results = np.zeros((len(m_seconds), n_realizations))
 # Universal constants
 M_SOL = 2e30
 G_CONST = 6.67e-11
-m_total = m1 + m2 
+m_total = m1 + m2
 
 for r in range(n_realizations):
     np.random.seed(r)
@@ -149,7 +149,7 @@ for r in range(n_realizations):
         int2_h = np.trapz(f2(t_vals) * h_signal, t_vals)
 
         # Residual signal after removing timing model fit
-        Gh_signal = h_signal - f1(t_vals) * int1_h / norm1 - f2(t_vals) * int2_h / norm2 -  f0(t_vals) * int0_h / norm0
+        Gh_signal = h_signal - f1(t_vals) * int1_h / norm1 - f2(t_vals) * int2_h / norm2  #-  f0(t_vals) * int0_h / norm0
         u_snr = np.trapz(Gh_signal**2, t_vals) / (2 * var_theta)
 
         # Threshold for detection (Bayes Factor 1000)
@@ -159,7 +159,7 @@ for r in range(n_realizations):
 g_results_stack = np.asarray(g_results, dtype=float)
 mass_grid = np.asarray(masses_ev, dtype=float)
 
-np.savez("g_results_eccentric_B1913_16.npz", curves=g_results_stack, masses=mass_grid)
+np.savez("g_results_eccentric_B1913_16_sinf0.npz", curves=g_results_stack, masses=mass_grid)
 
 #%% Results Visualization
 plt.figure(figsize=(8,6), dpi=300)

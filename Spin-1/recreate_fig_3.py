@@ -70,13 +70,26 @@ for key in masses_dict:
     ax.plot(m, g, color=colors_dict[key], lw=1, zorder=z_order + 0.1)
 
 # --- Pulsar B1913+16 Data ---
-data_B = np.load("g_results_eccentric_B1913_16.npz")
-m_B, curves_B = data_B["masses"], data_B["curves"]
+# data_B = np.load("g_results_eccentric_B1913_16.npz")
+# m_B, curves_B = data_B["masses"], data_B["curves"]
 
-for r in range(curves_B.shape[1]):
-    ax.loglog(m_B, curves_B[:, r], color="orange", alpha=0.3, lw=0.8, zorder=8)
+# for r in range(curves_B.shape[1]):
+#     ax.loglog(m_B, curves_B[:, r], color="orange", alpha=0.3, lw=0.8, zorder=8)
 
-ax.loglog(m_B, np.median(curves_B, axis=1), color="orange", lw=1.2, label="B1913+16", zorder=9)
+# ax.loglog(m_B, np.median(curves_B, axis=1), color="orange", lw=1.2, label="B1913+16", zorder=9)
+
+#########################
+data_S = np.load("g_results_eccentric_B1913_16_sinf0.npz")
+m_S, curves_S = data_S["masses"], data_S["curves"]
+
+# 2. Graficar las curvas individuales (con transparencia)
+for r in range(curves_S.shape[1]):
+    ax.loglog(m_S, curves_S[:, r], color="orange", alpha=0.2, lw=0.8, zorder=6)
+
+# 3. Graficar la mediana del nuevo set
+ax.loglog(m_S, np.median(curves_S, axis=1), color="orange", lw=1.2, label="B1913+16 (sin f0)", zorder=100)
+#########################
+
 
 # --- Pulsar J1903+0327 Data ---
 data_J = np.load("g_results_eccentric_J1903_0327.npz")
