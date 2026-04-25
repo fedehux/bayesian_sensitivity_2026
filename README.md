@@ -1,5 +1,3 @@
-# bayesian_sensitivity_2026
-
 # Sensitivity of binary pulsar timing to spin-0 and spin-1 ultralight dark matter
 
 This repository contains the Python implementation used to derive the
