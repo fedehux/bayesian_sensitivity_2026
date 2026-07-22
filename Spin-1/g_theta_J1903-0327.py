@@ -32,7 +32,6 @@ toa_precision = 6.24e-6  # TOA precision (epsilon) in seconds
 t_obs   = 10.7 * 365 * 24 * 3600  # Total observation time in seconds
 cadence = 638.8 / (365 * 24 * 3600)  # Observation cadence (ndot) in 1/seconds
 
-
 # --- Coordinate projections ---
 # Alpha_b and Eta_b constants
 alpha_b = a1 * np.sin(w_rad)
@@ -52,9 +51,19 @@ var_theta = Q_factor * eps_factor * ecc**2 * (
     + eta_b**2 * (ecc**2 - 2) * (ecc**2 + 2 * eps_factor - 2)
 )
 
-# Mass range in eV and conversion to frequency (1/s)
-masses_ev = np.logspace(-22, -20, num=400)
-m_seconds = masses_ev * 1.51926760385984e+15
+EV_TO_INVS = 1.51926760385984e+15
+wb_eV = wb / EV_TO_INVS
+
+# Exact resonant masses N=1..6 within the range
+resonances_ev = np.array([N * wb_eV for N in range(1, 13)
+                           if 10**-22 <= N * wb_eV <= 10**-20])
+
+masses_ev = np.unique(np.concatenate([
+    np.logspace(-22, -20, num=400),
+    resonances_ev
+]))
+
+m_seconds = masses_ev * EV_TO_INVS
 
 # Timing model basis functions (fitting components)
 def f1(t): return t - t_obs / 2
@@ -64,21 +73,14 @@ def f0(t): return t**2 / t_obs - t + t_obs / 6
 #%% Sensitivity Calculation
 warnings.filterwarnings("ignore")
 
-# max_ang_freq = np.max(m_seconds)
-# max_freq_hz = max_ang_freq / (2 * np.pi)
-# samples_per_cycle = 20
-# n_points = int(np.ceil(t_obs * (samples_per_cycle * max_freq_hz)))
-
-N_t = round(t_obs * cadence * 10)
+N_t = round(t_obs * cadence * 20)
 t_vals = np.linspace(0, t_obs, N_t)
 
 n_realizations = 10
-n_bessel_terms = 30
-# # n_points = round(t_obs * cadence)
-# t_vals = np.linspace(0, t_obs, n_points)
+n_bessel_terms = 15
 
 # Gram-Schmidt basis normalization
-norm0 = np.trapz(f0(t_vals)**2, t_vals)
+# norm0 = np.trapz(f0(t_vals)**2, t_vals)
 norm1 = np.trapz(f1(t_vals)**2, t_vals)
 norm2 = np.trapz(f2(t_vals)**2, t_vals)
 
@@ -96,7 +98,8 @@ for r in range(n_realizations):
     rf         = np.random.rayleigh(1 / np.sqrt(2))
     gammaf     = np.random.uniform(0, 2 * np.pi)
     phif       = np.random.uniform(0, 2 * np.pi) # Ascending node
-    varthetaf  = np.random.uniform(-np.pi, np.pi)
+    # varthetaf  = np.random.uniform(-np.pi, np.pi)
+    varthetaf = np.arccos(np.random.uniform(-1.0, 1.0))
     
     # Semi-major axis in natural units
     a_semi = (G_CONST * M_SOL * m_total * 3.71140109219707e-26 / wb**2)**(1/3)
@@ -120,22 +123,24 @@ for r in range(n_realizations):
         F0_field = (delta_c / m_nucleon) * np.sqrt(2.0 * dm_density) * rf * np.sin(m_field * t_vals + gammaf)
 
         # --- Perturbative equations (adot, Omega_dot, varpi_dot) ---
-        a_dot = (2.0 / wb) * F0_field * np.sin(varthetaf) * (
-            (ecc / np.sqrt(1.0 - ecc**2)) * (cphi * sintheta * costheta + sphi * sintheta**2)
-            + (1.0 / (1.0 - ecc**2))      * (cphi * sintheta - sphi * costheta)
-            + (ecc / (1.0 - ecc**2))       * (cphi * sintheta * costheta - sphi * costheta**2)
+        # cos(phi - theta) and sin(phi - theta)
+        cos_phi_th = cphi * costheta + sphi * sintheta
+        sin_phi_th = sphi * costheta - cphi * sintheta
+        a_dot = -(2.0 / wb) * F0_field * np.sin(varthetaf) * (
+            (ecc / np.sqrt(1.0 - ecc**2)) * sintheta * cos_phi_th
+            + (np.sqrt(1.0 - ecc**2) / r_over_a) * sin_phi_th
         )
 
-        Omega_dot = (F0_field * np.cos(varthetaf) / (a_semi * wb)) * (
+        Omega_dot = -(F0_field * np.cos(varthetaf) / (a_semi * wb)) * (
             (sintheta * np.cos(w_rad) + costheta * np.sin(w_rad)) / (np.sin(iota) * np.sqrt(1.0 - ecc**2))
         ) * r_over_a
 
-        varpi_dot = (np.sqrt(1.0 - ecc**2) * F0_field / (a_semi * ecc * wb)) * np.sin(varthetaf) * (
+        varpi_dot = -(np.sqrt(1.0 - ecc**2) * F0_field / (a_semi * ecc * wb)) * np.sin(varthetaf) * (
             - (costheta**2) * cphi - (costheta * sintheta) * sphi
             + sintheta * (sphi * costheta - cphi * sintheta) * (1.0 + r_over_a / (1.0 - ecc**2))
         ) + 2.0 * (np.sin(iota / 2.0)**2) * Omega_dot
 
-        epsilon1_dot = -(2.0 / (a_semi * wb)) * r_over_a * F0_field * np.sin(varthetaf) * (costheta * cphi + sintheta * sphi) \
+        epsilon1_dot = (2.0 / (a_semi * wb)) * r_over_a * F0_field * np.sin(varthetaf) * (costheta * cphi + sintheta * sphi) \
                        + (1.0 - np.sqrt(1.0 - ecc**2)) * varpi_dot \
                        + 2.0 * np.sqrt(1.0 - ecc**2) * (np.sin(iota / 2.0)**2) * Omega_dot
 
@@ -147,12 +152,10 @@ for r in range(n_realizations):
 
         h_signal = -1.5 * wb * int_delta_a + int_eps1 - int_varpi
 
-        # --- Orthogonal projection and SNR calculation ---
-        int0_h = np.trapz(f0(t_vals) * h_signal, t_vals)
+        # --- Orthogonal projection ---
         int1_h = np.trapz(f1(t_vals) * h_signal, t_vals)
         int2_h = np.trapz(f2(t_vals) * h_signal, t_vals)
 
-        # Residual signal after removing timing model fit
         Gh_signal = h_signal - f1(t_vals) * int1_h / norm1 - f2(t_vals) * int2_h / norm2 #-  f0(t_vals) * int0_h / norm0
         u_snr = np.trapz(Gh_signal**2, t_vals) / (2 * var_theta)
 
